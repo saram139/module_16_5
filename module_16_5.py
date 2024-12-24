@@ -4,8 +4,6 @@ from fastapi.templating import Jinja2Templates
 from typing import Annotated, List
 from pydantic import BaseModel
 
-# uvicorn module_16_5:app --reload
-
 app = FastAPI(swagger_ui_parameters={"tryItOutEnabled": True}, debug=True)
 templates = Jinja2Templates(directory="templates")
 
@@ -14,15 +12,12 @@ class User(BaseModel):
     username: str
     age: int
 
-users: List[User] = [
-    User(id=1, username="UrbanUser", age=24),
-    User(id=2, username="UrbanTest", age=22),
-    User(id=3, username="Capybara", age=60)
-]
+users = []
 
 @app.get("/", response_class=HTMLResponse)
 async def get_users(request: Request):
     return templates.TemplateResponse("users.html", {"request": request, "users": users})
+
 
 @app.get("/users/{user_id}", response_class=HTMLResponse)
 async def get_user(request: Request, user_id: Annotated[int, Path(ge=1)]):
@@ -30,8 +25,7 @@ async def get_user(request: Request, user_id: Annotated[int, Path(ge=1)]):
         if user.id == user_id:  
             return templates.TemplateResponse("users.html", {"request": request, "user": user})
     raise HTTPException(status_code=404, detail='User was not found')
-
-
+    
 
 @app.post("/user/{username}/{age}")
 async def post_user(username: Annotated[str, Path(min_length=5, max_length=20, description="Enter username", example="UrbanUser")],
